@@ -1,0 +1,172 @@
+---
+title: "Ch. 9-11 Tibbles and Data Importing"
+author: "Jerri Schorr"
+date: 10-22-2019
+output: github_document
+---
+
+##### **Chapter 9**
+
+* Data Wrangling
+    + Without wrangling your data you can't use it in R
+    + There are 3 main parts
+        + Import, Tidy, Transform
+        
+##### **Chapter 10**
+
+* This chapter will teach about **Tibbles** package
+    + a package that helps clean up data easier than the original "data.frame"" in R
+
+###### **10.1**
+
+* set up libraries and install packages
+
+```{r set up, include=FALSE}
+install.packages("tibble")
+library(tidyverse)
+library(tibble)
+```
+
+###### **10.2**
+
+* You can create tibbles from data frames or from raw data
+
+```{r}
+as_tibble(iris) #turning data frame into tibble
+tibble(
+   x = 1:5, 
+  y = 1, 
+  z = x ^ 2 + y
+) #creating tibble from raw data
+```
+
+
+* Tibbles do much less to the data when importing
+    
+    + never changes input types
+    + never changes variable names
+    + never creates row names 
+    
+###### **10.3**   
+
+* 2 main differences btwn tibbles and data frames
+    + Printing
+        + Tibbles print first 10 rows and all cols that fit on the screen 
+    + Subsetting
+        + $ and [[]] can subset the data
+        
+###### **10.4** 
+
+* Some older functions do not work with tibbles
+    + [] in tibbles will return another tibble 
+    + [] in a df will return a vector or another df
+        + this is why some functions dont work with tibbles
+        
+###### **10.5** 
+
+```{r}
+df <- data.frame(abc = 1, xyz = "a")
+df$x
+df[, "xyz"]
+df[, c("abc", "xyz")]
+```
+
+
+```{r}
+annoying <- tibble(
+  `1` = 1:10,
+  `2` = `1` * 2 + rnorm(length(`1`))
+)
+```
+
+##### **Chapter 11**
+
+###### **11.1** 
+
+###### **11.2**
+
+```{r}
+heights <- read_csv("data/heights.csv")
+```
+
+```{r}
+read_csv("a,b,c
+1,2,3
+4,5,6")
+```
+
+```{r}
+read_csv("a,b\n1,2,3\n4,5,6")
+read_csv("a,b,c\n1,2\n1,2,3,4")
+read_csv("a,b\n\"1")
+read_csv("a,b\n1,2\na,b")
+read_csv("a;b\n1;3")
+```
+
+###### **11.3**
+
+```{r}
+str(parse_logical(c("TRUE", "FALSE", "NA")))
+#>  logi [1:3] TRUE FALSE NA
+str(parse_integer(c("1", "2", "3")))
+#>  int [1:3] 1 2 3
+str(parse_date(c("2010-01-01", "1979-10-14")))
+#>  Date[1:2], format: "2010-01-01" "1979-10-14"
+```
+
+```{r}
+parse_date("01/02/15", "%m/%d/%y")
+#> [1] "2015-01-02"
+parse_date("01/02/15", "%d/%m/%y")
+#> [1] "2015-02-01"
+parse_date("01/02/15", "%y/%m/%d")
+#> [1] "2001-02-15"
+```
+
+###### **11.4**
+
+```{r}
+guess_parser("2010-10-01")
+#> [1] "date"
+guess_parser("15:01")
+#> [1] "time"
+guess_parser(c("TRUE", "FALSE"))
+#> [1] "logical"
+guess_parser(c("1", "5", "9"))
+#> [1] "double"
+guess_parser(c("12,352,561"))
+#> [1] "number"
+
+str(parse_guess("2010-10-10"))
+#>  Date[1:1], format: "2010-10-10"
+```
+
+* These defaults don’t always work for larger files. There are two basic problems:
+
+    + The first thousand rows might be a special case, and readr guesses a type that is not sufficiently general. For example, you might have a column of doubles that only contains integers in the first 1000 rows.
+
+    + The column might contain a lot of missing values. If the first 1000 rows contain only NAs, readr will guess that it’s a character vector, whereas you probably want to parse it as something more specific.
+
+    + readr contains a challenging CSV that illustrates both of these problems:
+    
+```{r}
+challenge <- read_csv(readr_example("challenge.csv"))
+```
+```{r}
+challenge <- read_csv(
+  readr_example("challenge.csv"), 
+  col_types = cols(
+    x = col_integer(),
+    y = col_character()
+  )
+)
+```
+    
+###### **11.5**
+
+* Write to a file 
+
+```{r}
+write_csv(challenge, "challenge.csv")
+```
+
